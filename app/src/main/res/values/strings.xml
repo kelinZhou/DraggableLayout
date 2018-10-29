@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">DragLayout</string>
+    <string name="test_content_text">我是可以向上拖拽的</string>
+</resources>
