@@ -8,6 +8,13 @@
     tools:context=".MainActivity">
 
     <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:background="#aaa"/>
+
+    <View
         android:id="@+id/partingLine"
         android:layout_width="match_parent"
         android:layout_height="1px"
@@ -25,6 +32,11 @@
         android:text="中间分界线!"
         app:layout_constraintTop_toBottomOf="@+id/partingLine"/>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    </LinearLayout>
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="match_parent"
@@ -38,5 +50,6 @@
         android:textColor="@android:color/white"
         app:dragHandleBegin="20%p"
         app:dragHandleEnd="50%p"/>
+
 
 </com.kelin.draglayout.DragLayout>

@@ -119,13 +119,13 @@ class DragLayout(context: Context, attrs: AttributeSet?, defStyle: Int) : Constr
     private fun parserValueFromMode(mode: Int, bottom: Int, dragView: View, dragHandleSize: Int) =
             when (mode) {
                 LayoutParams.MODE_DP -> {
-                    bottom - (dragHandleSize * resources.displayMetrics.density + 0.5f).toInt()
+                    bottom - (dragHandleSize * resources.displayMetrics.density + 0.5).toInt()
                 }
                 LayoutParams.MODE_PERCENT -> {
-                    bottom - dragView.height / 100 * dragHandleSize
+                    bottom - (dragView.height / 100.0 * dragHandleSize + 0.5).toInt()
                 }
                 LayoutParams.MODE_PERCENT_PRENT -> {
-                    bottom - height / 100 * dragHandleSize
+                    bottom - (height / 100.0 * dragHandleSize + 0.5).toInt()
                 }
                 else -> throw IllegalArgumentException("the dragHandleMode is unknown!")
             }
@@ -167,17 +167,17 @@ class DragLayout(context: Context, attrs: AttributeSet?, defStyle: Int) : Constr
         }
 
         override fun clampViewPositionVertical(child: View, top: Int, dy: Int): Int {
-            Log.i("============", "$dragViewBegin|$dragViewEnd|$top")
+            Log.i("============", "$dragViewBegin|$dragViewEnd|$top|$dy")
             return if (dy > 0) {
                 curDragOrientation = DRAG_ORIENTATION_DOWN
-                if (child.top >= dragViewBegin) {
+                if (child.top + dy >= dragViewBegin) {
                     dragViewBegin
                 } else {
                     top
                 }
             } else {
                 curDragOrientation = DRAG_ORIENTATION_UP
-                if (child.top <= dragViewEnd) {
+                if (child.top + dy <= dragViewEnd) {
                     dragViewEnd
                 } else {
                     top
