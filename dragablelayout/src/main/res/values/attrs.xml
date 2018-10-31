@@ -3,4 +3,20 @@
     <declare-styleable name="DragLayout">
         <attr name="dragView" format="reference" />
     </declare-styleable>
+    <declare-styleable name="DragLayout_Layout">
+        <!--拖拽把手起始位置，此属性用来约定可拖拽控件显露出来可以被用户拖拽的部分的大小，这并不表示
+        没有显露出来的部分在显露出来以后不可以被用户拖拽。接收的值是一个字符串，但是他必须是一个有格式的字符串。
+        格式为整数加单位，单位有：
+            1. dp 表示显露出来的大小为Xdp，例如 20dp；
+            2. % 表示显露出来的大小为自身的百分比，例如 20%；
+            3. %p 表示显露出来的大小为父组件(也就是DragLayout)的百分比，例如 20%p；-->
+        <attr name="dragHandleBegin" format="string" />
+
+        <!--拖拽把手结束位置。接收的值是一个字符串，但是他必须是一个有格式的字符串。
+        格式为整数加单位，单位有：
+            1. dp 表示显露出来的大小为Xdp，例如 20dp；
+            2. % 表示显露出来的大小为自身的百分比，例如 20%；
+            3. %p 表示显露出来的大小为父组件(也就是DragLayout)的百分比，例如 20%p；-->
+        <attr name="dragHandleEnd" format="string" />
+    </declare-styleable>
 </resources>
