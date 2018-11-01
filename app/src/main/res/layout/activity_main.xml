@@ -4,52 +4,40 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:dragView="@+id/tvTitle"
+    app:dragView="@+id/llDragView"
     tools:context=".MainActivity">
 
-    <View
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rvList"
         android:layout_width="match_parent"
-        android:layout_height="1px"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:background="#aaa"/>
-
-    <View
-        android:id="@+id/partingLine"
-        android:layout_width="match_parent"
-        android:layout_height="1px"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.65"
-        android:background="#aaa"/>
-
-
-    <TextView
-        android:layout_width="match_parent"
-        android:gravity="center_horizontal"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:text="中间分界线!"
-        app:layout_constraintTop_toBottomOf="@+id/partingLine"/>
+        android:layout_height="match_parent"
+        android:layout_marginBottom="101dp" />
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-    </LinearLayout>
-    <TextView
-        android:id="@+id/tvTitle"
+        android:id="@+id/llDragView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginStart="12dp"
+        android:background="@drawable/shape_grey_10r_lt_rt"
+        app:dragHandleBegin="100dp"
+        app:dragHandleEnd="50%p"
         app:layout_constraintHeight_default="percent"
         app:layout_constraintHeight_percent="0.5"
-        android:gravity="center_horizontal"
-        android:background="#666"
-        android:paddingTop="12dp"
-        android:text="@string/test_content_text"
-        android:textColor="@android:color/white"
-        app:dragHandleBegin="20%p"
-        app:dragHandleEnd="50%p"/>
+        android:orientation="vertical">
 
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:paddingTop="12dp"
+            android:text="@string/test_content_text"
+            android:textColor="@android:color/white" />
 
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/rvList2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </LinearLayout>
 </com.kelin.draglayout.DragLayout>

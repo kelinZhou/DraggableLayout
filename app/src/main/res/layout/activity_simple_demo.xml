@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.kelin.draglayout.DragLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:dragView="@+id/tvTitle"
+    tools:context=".MainActivity">
+
+    <View
+        android:id="@+id/centerLine"
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="#aaa"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="可拖拽的最大边界!"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/dragSpaceCenterLine1"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <View
+        android:id="@+id/dragSpaceCenterLine1"
+        android:layout_width="1px"
+        android:layout_height="0dp"
+        android:background="#a00"
+        app:layout_constraintBottom_toTopOf="@+id/dragSpaceCenterLine"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/centerLine" />
+
+    <TextView
+        android:id="@+id/arrow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingEnd="8dp"
+        android:paddingStart="8dp"
+        android:text="@string/arrow_text"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toTopOf="@+id/dragSpaceCenterLine"
+        app:layout_constraintLeft_toLeftOf="@+id/dragSpaceCenterLine1"
+        app:layout_constraintTop_toBottomOf="@+id/centerLine" />
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:lineSpacingMultiplier="1.3"
+        android:textColor="#a00"
+        android:text="可拖拽控件被收起时的top与展开时的top的距离的一半,拖拽到这个距离内释放会被展开！"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toTopOf="@+id/dragSpaceCenterLine"
+        app:layout_constraintLeft_toRightOf="@+id/arrow"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/centerLine" />
+
+    <View
+        android:id="@+id/dragSpaceCenterLine"
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="#aaa"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.7" />
+
+    <View
+        android:id="@+id/dragSpaceCenterLine2"
+        android:layout_width="1px"
+        android:layout_height="0dp"
+        android:background="#0a0"
+        app:layout_constraintHeight_default="percent"
+        app:layout_constraintHeight_percent="0.2"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/dragSpaceCenterLine" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingEnd="8dp"
+        android:paddingStart="8dp"
+        android:text="@string/arrow_text"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/dragSpaceCenterLine2"
+        app:layout_constraintLeft_toRightOf="@+id/dragSpaceCenterLine2"
+        app:layout_constraintTop_toBottomOf="@+id/dragSpaceCenterLine" />
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:lineSpacingMultiplier="1.25"
+        android:text="可拖拽控件被收起时的top与展开时的top的距离的一半,拖拽到这个距离内释放会被收起！"
+        android:textSize="12sp"
+        android:textColor="#0a0"
+        app:layout_constraintBottom_toBottomOf="@+id/dragSpaceCenterLine2"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toRightOf="@+id/arrow"
+        app:layout_constraintTop_toBottomOf="@+id/dragSpaceCenterLine" />
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="中间分界线!"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/dragSpaceCenterLine1"
+        app:layout_constraintTop_toBottomOf="@+id/centerLine"
+        app:layout_constraintBottom_toBottomOf="@+id/dragSpaceCenterLine2"/>
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@drawable/shape_grey_10r_lt_rt"
+        android:gravity="center_horizontal"
+        android:paddingTop="12dp"
+        android:text="@string/test_content_text"
+        android:textColor="@android:color/white"
+        app:dragHandleBegin="20%"
+        app:dragHandleEnd="50%p"
+        app:layout_constraintHeight_default="percent"
+        app:layout_constraintHeight_percent="0.5"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"/>
+</com.kelin.draglayout.DragLayout>

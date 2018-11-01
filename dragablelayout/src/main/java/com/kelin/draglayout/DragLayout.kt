@@ -131,7 +131,12 @@ class DragLayout(context: Context, attrs: AttributeSet?, defStyle: Int) : Constr
             }
 
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
-        return dragHelper.shouldInterceptTouchEvent(ev)
+        var touchingDragView = false
+        val topView = dragHelper.findTopChildUnder(ev.x.toInt(), ev.y.toInt())
+        if (topView?.id == dragViewId) {
+            touchingDragView = true
+        }
+        return touchingDragView or dragHelper.shouldInterceptTouchEvent(ev)
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -185,17 +190,22 @@ class DragLayout(context: Context, attrs: AttributeSet?, defStyle: Int) : Constr
             }
         }
 
+        override fun clampViewPositionHorizontal(child: View, left: Int, dx: Int): Int {
+            return child.left
+        }
+
         override fun onViewReleased(releasedChild: View, xvel: Float, yvel: Float) {
-            dragHelper.viewDragState
-            val center = Math.abs(dragViewEnd - dragViewBegin).ushr(1)
-            val threshold = if (curDragOrientation == DRAG_ORIENTATION_IDLE) DRAG_VEL_THRESHOLD else DRAG_VEL_THRESHOLD * Math.abs(releasedChild.top - getDifferenceValue()) / center
-            val finalTop = when {
-                Math.abs(yvel) > threshold && Math.abs(yvel) > 1000 -> getFinalTop()
-                releasedChild.top < center + dragViewEnd -> dragViewEnd
-                else -> dragViewBegin
+            if (releasedChild.top != dragViewBegin && releasedChild.top != dragViewEnd) {
+                val center = Math.abs(dragViewEnd - dragViewBegin).ushr(1)
+                val threshold = if (curDragOrientation == DRAG_ORIENTATION_IDLE) DRAG_VEL_THRESHOLD else DRAG_VEL_THRESHOLD * Math.abs(releasedChild.top - getDifferenceValue()) / center
+                val finalTop = when {
+                    Math.abs(yvel) > threshold && Math.abs(yvel) > 1000 -> getFinalTop()
+                    releasedChild.top < center + dragViewEnd -> dragViewEnd
+                    else -> dragViewBegin
+                }
+                dragHelper.settleCapturedViewAt(releasedChild.left, finalTop)
+                invalidate()
             }
-            dragHelper.settleCapturedViewAt(0, finalTop)
-            invalidate()
         }
 
         private fun getDifferenceValue() = when (curDragOrientation) {
