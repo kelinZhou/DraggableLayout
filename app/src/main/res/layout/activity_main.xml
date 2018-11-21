@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.kelin.draglayout.DragLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    app:dragView="@+id/llDragView"
-    tools:context=".MainActivity">
+    android:layout_height="match_parent">
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rvList"
@@ -13,31 +11,49 @@
         android:layout_height="match_parent"
         android:layout_marginBottom="101dp" />
 
-    <LinearLayout
-        android:id="@+id/llDragView"
+
+    <!--<TextView-->
+        <!--android:id="@+id/tvRoot"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:text="这是根页面"-->
+        <!--android:gravity="center"-->
+        <!--android:textSize="20sp"/>-->
+
+    <com.kelin.draglayout.ScrollLayout
+        android:id="@+id/dlRoot"
+        app:minOffset="0dp"
+        app:exitOffset="50dp"
+        app:maxOffset="50%"
+        app:mode="close"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginEnd="12dp"
-        android:layout_marginStart="12dp"
-        android:background="@drawable/shape_grey_10r_lt_rt"
-        app:dragHandleBegin="100dp"
-        app:dragHandleEnd="50%p"
-        app:layout_constraintHeight_default="percent"
-        app:layout_constraintHeight_percent="0.5"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/tvTitle"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:id="@+id/llDragView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:paddingTop="12dp"
-            android:text="@string/test_content_text"
-            android:textColor="@android:color/white" />
+            android:layout_height="match_parent"
+            android:layout_marginEnd="12dp"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/shape_grey_10r_lt_rt"
+            app:layout_constraintHeight_default="percent"
+            app:layout_constraintHeight_percent="0.5"
+            android:orientation="vertical">
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/rvList2"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-    </LinearLayout>
-</com.kelin.draglayout.DragLayout>
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:gravity="center"
+                android:text="@string/test_content_text"
+                android:textColor="@android:color/white" />
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rvList2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+        </LinearLayout>
+    </com.kelin.draglayout.ScrollLayout>
+
+
+
+</android.support.constraint.ConstraintLayout>

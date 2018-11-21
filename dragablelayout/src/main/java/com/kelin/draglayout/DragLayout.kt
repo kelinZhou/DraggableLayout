@@ -4,6 +4,10 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.support.constraint.ConstraintLayout
 import android.support.v4.widget.ViewDragHelper
+import android.support.v7.widget.GridLayoutManager
+import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
+import android.support.v7.widget.StaggeredGridLayoutManager
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
@@ -37,6 +41,22 @@ class DragLayout(context: Context, attrs: AttributeSet?, defStyle: Int) : Constr
      * 用来记录可拖拽View被展开后的位置。
      */
     private var dragViewEnd = 0
+    private var isDraggable = false
+    private var lastX = 0F
+    private var lastY = 0F
+    private var curDragStatus = DRAG_STATE_BEGIN
+
+    private val associatedRecyclerViewListener = object : RecyclerView.OnScrollListener() {
+        override fun onScrollStateChanged(recyclerView: RecyclerView?, newState: Int) {
+            super.onScrollStateChanged(recyclerView, newState)
+            updateRecyclerViewScrollState(recyclerView!!)
+        }
+
+        override fun onScrolled(recyclerView: RecyclerView?, dx: Int, dy: Int) {
+            super.onScrolled(recyclerView, dx, dy)
+            updateRecyclerViewScrollState(recyclerView!!)
+        }
+    }
 
     companion object {
         /**
@@ -59,25 +79,21 @@ class DragLayout(context: Context, attrs: AttributeSet?, defStyle: Int) : Constr
          */
         const val SCROLL_STATE_SETTLING = 2
         /**
-         * 表示当前没有任何拖拽方向。当拖拽状态为SCROLL_STATE_IDLE时获取拖拽方向时就会得到这个值。
+         * 表示当前状态为可拖拽的子View处于开始位置。
          */
-        const val DRAG_ORIENTATION_IDLE = 0xf0
+        const val DRAG_STATE_BEGIN = 0xf0
+        /**
+         * 表示当前状态为可拖拽的子View处于结束位置。
+         */
+        const val DRAG_STATE_END = 0xf1
         /**
          * 表示当前正在从下至上拖拽。
          */
-        const val DRAG_ORIENTATION_UP = 0xf1
+        const val DRAG_STATE_UP = 0xf2
         /**
          * 表示当前正在从上至下拖拽。
          */
-        const val DRAG_ORIENTATION_DOWN = 0xf2
-        /**
-         * 表示当前正在从右至左拖拽。
-         */
-        const val DRAG_ORIENTATION_LEFT = 0xf3
-        /**
-         * 表示当前正在从左至右拖拽。
-         */
-        const val DRAG_ORIENTATION_RIGHT = 0xf4
+        const val DRAG_STATE_DOWN = 0xf3
     }
 
     init {
@@ -86,6 +102,23 @@ class DragLayout(context: Context, attrs: AttributeSet?, defStyle: Int) : Constr
             if (typedArray != null) {
                 dragViewId = typedArray.getResourceId(R.styleable.DragLayout_dragView, dragViewId)
                 typedArray.recycle()
+            }
+        }
+    }
+
+    override fun onFinishInflate() {
+        super.onFinishInflate()
+        if (dragViewId != View.NO_ID) {
+            val dragView = findViewById<View>(dragViewId)
+            if (dragView is RecyclerView) {
+                setAssociatedRecyclerView(dragView)
+            }else if (dragView is ViewGroup) {
+                for (i: Int in 0 until dragView.childCount) {
+                    val childAt = dragView.getChildAt(i)
+                    if (childAt is RecyclerView) {
+                        setAssociatedRecyclerView(childAt)
+                    }
+                }
             }
         }
     }
@@ -130,19 +163,40 @@ class DragLayout(context: Context, attrs: AttributeSet?, defStyle: Int) : Constr
                 else -> throw IllegalArgumentException("the dragHandleMode is unknown!")
             }
 
+
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
-        var touchingDragView = false
-        val topView = dragHelper.findTopChildUnder(ev.x.toInt(), ev.y.toInt())
+        var draggable = true
+        val topView = dragHelper.findTopChildUnder(x.toInt(), ev.y.toInt())
         if (topView?.id == dragViewId) {
-            touchingDragView = true
+            val x = ev.x
+            val y = ev.y
+            when (ev.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    lastX = x
+                    lastY = y
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val spaceX = Math.abs(lastX - x)
+                    val spaceY = Math.abs(lastY - y)
+                    if (spaceY < spaceX || y > lastY || !isDraggable || curDragStatus == DRAG_STATE_BEGIN) {
+                        draggable = true
+                    }
+                }
+            }
         }
-        return touchingDragView or dragHelper.shouldInterceptTouchEvent(ev)
+
+        return draggable or dragHelper.shouldInterceptTouchEvent(ev)
     }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
         dragHelper.processTouchEvent(event)
         return true
+    }
+
+    private fun setAssociatedRecyclerView(recyclerView: RecyclerView) {
+        recyclerView.addOnScrollListener(associatedRecyclerViewListener)
+        updateRecyclerViewScrollState(recyclerView)
     }
 
     override fun computeScroll() {
@@ -165,7 +219,6 @@ class DragLayout(context: Context, attrs: AttributeSet?, defStyle: Int) : Constr
     }
 
     private inner class ViewDragHelperCallImpl : ViewDragHelper.Callback() {
-        private var curDragOrientation = DRAG_ORIENTATION_IDLE
 
         override fun tryCaptureView(child: View, pointerId: Int): Boolean {
             return child.id == dragViewId && dragViewId != NO_ID
@@ -174,17 +227,19 @@ class DragLayout(context: Context, attrs: AttributeSet?, defStyle: Int) : Constr
         override fun clampViewPositionVertical(child: View, top: Int, dy: Int): Int {
             Log.i("============", "$dragViewBegin|$dragViewEnd|$top|$dy")
             return if (dy > 0) {
-                curDragOrientation = DRAG_ORIENTATION_DOWN
                 if (child.top + dy >= dragViewBegin) {
+                    curDragStatus = DRAG_STATE_BEGIN
                     dragViewBegin
                 } else {
+                    curDragStatus = DRAG_STATE_DOWN
                     top
                 }
             } else {
-                curDragOrientation = DRAG_ORIENTATION_UP
                 if (child.top + dy <= dragViewEnd) {
+                    curDragStatus = DRAG_STATE_END
                     dragViewEnd
                 } else {
+                    curDragStatus = DRAG_STATE_UP
                     top
                 }
             }
@@ -197,7 +252,7 @@ class DragLayout(context: Context, attrs: AttributeSet?, defStyle: Int) : Constr
         override fun onViewReleased(releasedChild: View, xvel: Float, yvel: Float) {
             if (releasedChild.top != dragViewBegin && releasedChild.top != dragViewEnd) {
                 val center = Math.abs(dragViewEnd - dragViewBegin).ushr(1)
-                val threshold = if (curDragOrientation == DRAG_ORIENTATION_IDLE) DRAG_VEL_THRESHOLD else DRAG_VEL_THRESHOLD * Math.abs(releasedChild.top - getDifferenceValue()) / center
+                val threshold = if (curDragStatus == DRAG_STATE_BEGIN) DRAG_VEL_THRESHOLD else DRAG_VEL_THRESHOLD * Math.abs(releasedChild.top - getDifferenceValue()) / center
                 val finalTop = when {
                     Math.abs(yvel) > threshold && Math.abs(yvel) > 1000 -> getFinalTop()
                     releasedChild.top < center + dragViewEnd -> dragViewEnd
@@ -208,15 +263,15 @@ class DragLayout(context: Context, attrs: AttributeSet?, defStyle: Int) : Constr
             }
         }
 
-        private fun getDifferenceValue() = when (curDragOrientation) {
-            DRAG_ORIENTATION_UP -> dragViewBegin
-            DRAG_ORIENTATION_DOWN -> dragViewEnd
+        private fun getDifferenceValue() = when (curDragStatus) {
+            DRAG_STATE_UP -> dragViewBegin
+            DRAG_STATE_DOWN -> dragViewEnd
             else -> TODO("this orientation is not handle!")
         }
 
-        private fun getFinalTop() = when (curDragOrientation) {
-            DRAG_ORIENTATION_UP -> dragViewEnd
-            DRAG_ORIENTATION_DOWN -> dragViewBegin
+        private fun getFinalTop() = when (curDragStatus) {
+            DRAG_STATE_UP -> dragViewEnd
+            DRAG_STATE_DOWN -> dragViewBegin
             else -> TODO("this orientation is not handle!")
         }
     }
@@ -312,6 +367,28 @@ class DragLayout(context: Context, attrs: AttributeSet?, defStyle: Int) : Constr
             } else {
                 DRAG_HANDLE_BEGIN_OR_END_NOT_SET
             }
+        }
+    }
+
+    private fun updateRecyclerViewScrollState(recyclerView: RecyclerView) {
+        if (recyclerView.childCount == 0) {
+            isDraggable = true
+        } else {
+            val layoutManager = recyclerView.layoutManager
+            var i = IntArray(1)
+            if (layoutManager is LinearLayoutManager || layoutManager is GridLayoutManager) {
+                i[0] = (layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+            } else if (layoutManager is StaggeredGridLayoutManager) {
+                i = layoutManager.findFirstVisibleItemPositions(i)
+            }
+            if (i[0] == 0) {
+                val firstChild = recyclerView.getChildAt(0)
+                if (firstChild.top == recyclerView.paddingTop) {
+                    isDraggable = true
+                    return
+                }
+            }
+            isDraggable = false
         }
     }
 

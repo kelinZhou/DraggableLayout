@@ -20,6 +20,14 @@ class MainActivity : AppCompatActivity() {
         rvList2.layoutManager = LinearLayoutManager(this)
         rvList2.adapter = TestAdapter(getDataList("我是拖拽列表的条目"))
         rvList2.requestDisallowInterceptTouchEvent(true)
+//        tvRoot.setOnClickListener { dlRoot.scrollToOpen() }
+    }
+
+    override fun onStart() {
+        super.onStart()
+//        dlRoot.setIsSupportExit(true)
+//        dlRoot.setAllowHorizontalScroll(true)
+//        dlRoot.setOnScrollChangedListener(mOnScrollChangedListener)
     }
 
     private fun getDataList(title: String): List<String> {

@@ -19,4 +19,24 @@
             3. %p 表示显露出来的大小为父组件(也就是DragLayout)的百分比，例如 20%p；-->
         <attr name="dragHandleEnd" format="string" />
     </declare-styleable>
+
+    <declare-styleable name="ScrollLayout">
+
+        <attr name="minOffset" format="string" />
+
+        <attr name="maxOffset" format="string" />
+
+        <attr name="exitOffset" format="string" />
+
+        <attr name="mode">
+            <flag name="open" value="0x1" />
+            <flag name="close" value="0x2" />
+            <flag name="exit" value="0x3" />
+        </attr>
+
+        <attr name="allowHorizontalScroll" format="boolean"/>
+
+        <attr name="isSupportExit" format="boolean"/>
+
+    </declare-styleable>
 </resources>
