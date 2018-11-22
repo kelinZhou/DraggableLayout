@@ -9,7 +9,7 @@
         android:id="@+id/rvList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="101dp" />
+        android:layout_marginBottom="51dp" />
 
 
     <!--<TextView-->
@@ -22,10 +22,10 @@
 
     <com.kelin.draglayout.ScrollLayout
         android:id="@+id/dlRoot"
+        app:handleSize="50dp"
         app:minOffset="0dp"
-        app:exitOffset="50dp"
         app:maxOffset="50%"
-        app:mode="close"
+        app:mode="exit"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <LinearLayout

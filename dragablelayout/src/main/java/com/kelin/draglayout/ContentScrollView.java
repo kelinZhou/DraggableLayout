@@ -20,6 +20,7 @@
 
 package com.kelin.draglayout;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -56,20 +57,9 @@ public class ContentScrollView extends ScrollView {
         listener.onScrollChanged(l, t, oldl, oldt);
     }
 
-    @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        ViewParent parent = this.getParent();
-        while (parent != null) {
-            if (parent instanceof ScrollLayout) {
-                ((ScrollLayout) parent).setAssociatedScrollView(this);
-                break;
-            }
-            parent = parent.getParent();
-        }
-    }
 
     @Override
+    @SuppressLint("ClickableViewAccessibility")
     public boolean onTouchEvent(MotionEvent ev) {
         ViewParent parent = this.getParent();
         if (parent instanceof ScrollLayout) {

@@ -26,7 +26,8 @@
 
         <attr name="maxOffset" format="string" />
 
-        <attr name="exitOffset" format="string" />
+        <!--把手大小-->
+        <attr name="handleSize" format="string" />
 
         <attr name="mode">
             <flag name="open" value="0x1" />

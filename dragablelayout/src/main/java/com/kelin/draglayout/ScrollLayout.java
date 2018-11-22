@@ -25,7 +25,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
-import android.graphics.Canvas;
 import android.os.Build;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -38,11 +37,8 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewParent;
 import android.widget.AbsListView;
 import android.widget.FrameLayout;
-import android.widget.ListView;
-import android.widget.ScrollView;
 import android.widget.Scroller;
 
 
@@ -183,7 +179,7 @@ public class ScrollLayout extends FrameLayout {
             if (a != null) {
                 offsetInfo.minOffsetText = a.getString(R.styleable.ScrollLayout_minOffset);
                 offsetInfo.maxOffsetText = a.getString(R.styleable.ScrollLayout_maxOffset);
-                offsetInfo.exitOffsetText = a.getString(R.styleable.ScrollLayout_exitOffset);
+                offsetInfo.handleSizeText = a.getString(R.styleable.ScrollLayout_handleSize);
                 isAllowHorizontalScroll = a.getBoolean(R.styleable.ScrollLayout_allowHorizontalScroll, true);
                 isSupportExit = a.getBoolean(R.styleable.ScrollLayout_isSupportExit, true);
                 initialMode = a.getInteger(R.styleable.ScrollLayout_mode, MODE_EXIT);
@@ -266,7 +262,7 @@ public class ScrollLayout extends FrameLayout {
             float progress = (float) (-y - offsetInfo.minOffset) / (offsetInfo.maxOffset - offsetInfo.minOffset);
             onScrollProgressChanged(progress);
         } else {
-            float progress = (float) (-y - offsetInfo.maxOffset) / (offsetInfo.maxOffset - offsetInfo.exitOffset);
+            float progress = (float) (-y - offsetInfo.maxOffset) / (offsetInfo.maxOffset - offsetInfo.handleSize);
             onScrollProgressChanged(progress);
         }
         if (y == -offsetInfo.minOffset) {
@@ -281,7 +277,7 @@ public class ScrollLayout extends FrameLayout {
                 currentInnerStatus = InnerStatus.OPENED;
                 onScrollFinished(Status.OPENED);
             }
-        } else if (isSupportExit && y == -offsetInfo.exitOffset) {
+        } else if (isSupportExit && y == -offsetInfo.handleSize) {
             // exited
             if (currentInnerStatus != InnerStatus.EXIT) {
                 currentInnerStatus = InnerStatus.EXIT;
@@ -307,7 +303,7 @@ public class ScrollLayout extends FrameLayout {
         if (!scroller.isFinished() && scroller.computeScrollOffset()) {
             int currY = scroller.getCurrY();
             scrollTo(0, currY);
-            if (currY == -offsetInfo.minOffset || currY == -offsetInfo.maxOffset || (isSupportExit && currY == -offsetInfo.exitOffset)) {
+            if (currY == -offsetInfo.minOffset || currY == -offsetInfo.maxOffset || (isSupportExit && currY == -offsetInfo.handleSize)) {
                 scroller.abortAnimation();
             } else {
                 invalidate();
@@ -442,7 +438,7 @@ public class ScrollLayout extends FrameLayout {
     }
 
     private boolean disposeEdgeValue(int deltaY) {
-        return deltaY <= 0 && getScrollY() >= -offsetInfo.minOffset || deltaY >= 0 && getScrollY() <= (isSupportExit ? -offsetInfo.exitOffset : -offsetInfo.maxOffset);
+        return deltaY <= 0 && getScrollY() >= -offsetInfo.minOffset || deltaY >= 0 && getScrollY() <= (isSupportExit ? -offsetInfo.handleSize : -offsetInfo.maxOffset);
     }
 
     private void completeMove() {
@@ -451,7 +447,7 @@ public class ScrollLayout extends FrameLayout {
             scrollToClose();
         } else {
             if (isSupportExit) {
-                float exitValue = -((offsetInfo.exitOffset - offsetInfo.maxOffset) * SCROLL_TO_EXIT_OFFSET_FACTOR + offsetInfo.maxOffset);
+                float exitValue = -((offsetInfo.handleSize - offsetInfo.maxOffset) * SCROLL_TO_EXIT_OFFSET_FACTOR + offsetInfo.maxOffset);
                 if (getScrollY() <= closeValue && getScrollY() > exitValue) {
                     scrollToOpen();
                 } else {
@@ -526,17 +522,17 @@ public class ScrollLayout extends FrameLayout {
         if (currentInnerStatus == InnerStatus.EXIT) {
             return;
         }
-        if (offsetInfo.exitOffset == offsetInfo.maxOffset) {
+        if (offsetInfo.handleSize == offsetInfo.maxOffset) {
             return;
         }
-        int dy = -getScrollY() - offsetInfo.exitOffset;
+        int dy = -getScrollY() - offsetInfo.handleSize;
         if (dy == 0) {
             return;
         }
         lastFlingStatus = Status.EXIT;
         currentInnerStatus = InnerStatus.SCROLLING;
         int duration = MIN_SCROLL_DURATION
-                + Math.abs((MAX_SCROLL_DURATION - MIN_SCROLL_DURATION) * dy / (offsetInfo.exitOffset - offsetInfo.maxOffset));
+                + Math.abs((MAX_SCROLL_DURATION - MIN_SCROLL_DURATION) * dy / (offsetInfo.handleSize - offsetInfo.maxOffset));
         scroller.startScroll(0, getScrollY(), 0, dy, duration);
         invalidate();
     }
@@ -564,7 +560,7 @@ public class ScrollLayout extends FrameLayout {
      */
     public void setToExit() {
         if (!isSupportExit) return;
-        scrollTo(0, -offsetInfo.exitOffset);
+        scrollTo(0, -offsetInfo.handleSize);
         currentInnerStatus = InnerStatus.EXIT;
     }
 
@@ -736,15 +732,15 @@ public class ScrollLayout extends FrameLayout {
     class OffsetInfo {
         private String minOffsetText;
         private String maxOffsetText;
-        private String exitOffsetText;
+        private String handleSizeText;
         int minOffset;
         int maxOffset;
-        int exitOffset;
+        int handleSize;
 
         private void measure(Resources res, int height) {
             minOffset = parserValueFromMode(res, parserOffset(minOffsetText, "minOffset"), height);
             maxOffset = height - parserValueFromMode(res, parserOffset(maxOffsetText, "maxOffset"), height);
-            exitOffset = height - parserValueFromMode(res, parserOffset(exitOffsetText, "exitOffset"), height);
+            handleSize = height - parserValueFromMode(res, parserOffset(handleSizeText, "handleSize"), height);
         }
 
         private int parserOffset(String value, String argName) {
