@@ -9,12 +9,6 @@
 
 ![DemoApk](images/draggable_layout_demo.png)
 
-
-## 体验
-[点击下载](https://fir.im/rnam)或扫码下载DemoApk
-
-![DemoApk](materials/apk_download.png)
-
 # 下载
 #### 第一步：添加 JitPack 仓库到你项目根目录的 gradle 文件中。
 ```
@@ -28,7 +22,7 @@ allprojects {
 #### 第二步：添加这个依赖。
 ```
 dependencies {
-	implementation 'com.github.kelinZhou:DraggableLayout:1.0.0'
+    implementation 'com.github.kelinZhou:DraggableLayout:1.0.0'
 }
 ```
 # 使用
