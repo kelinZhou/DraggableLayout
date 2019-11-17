@@ -1,5 +1,4 @@
 <resources>
     <string name="app_name">DraggableLayout</string>
     <string name="test_content_text">向上拖拽我还有更多内容哟</string>
-    <string name="arrow_text"><![CDATA[<--]]></string>
 </resources>

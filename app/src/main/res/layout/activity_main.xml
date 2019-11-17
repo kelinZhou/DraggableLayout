@@ -13,46 +13,46 @@
 
     <com.kelin.draggablelayout.DraggableLayout
         android:id="@+id/dlRoot"
-        app:handleSize="53dp"
-        app:minRemainingSpace="40%"
-        app:middleRemainingSpace="50%"
-        app:initStatus="close"
-        app:hasMiddleStatus="false"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:contentViewId="@id/rvList2">
+        app:contentViewId="@id/rvList2"
+        app:handleSize="53dp"
+        app:hasMiddleStatus="false"
+        app:initStatus="close"
+        app:middleRemainingSpace="50%"
+        app:minRemainingSpace="40%">
+
         <LinearLayout
             android:id="@+id/llDragView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@drawable/shape_grey_10r_lt_rt"
+            android:orientation="vertical"
             app:layout_constraintHeight_default="percent"
-            app:layout_constraintHeight_percent="0.5"
-            android:orientation="vertical">
+            app:layout_constraintHeight_percent="0.5">
 
             <TextView
                 android:layout_width="40dp"
                 android:layout_height="3dp"
                 android:layout_gravity="center_horizontal"
-                android:background="@drawable/shape_white_10r"
-                android:layout_marginTop="10dp"/>
+                android:layout_marginTop="10dp"
+                android:background="@drawable/shape_white_10r" />
 
             <TextView
                 android:id="@+id/tvTitle"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
                 android:gravity="center"
-                android:textSize="13sp"
                 android:text="@string/test_content_text"
-                android:textColor="@android:color/white" />
+                android:textColor="@android:color/white"
+                android:textSize="13sp" />
 
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/rvList2"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
+                android:layout_height="match_parent" />
         </LinearLayout>
     </com.kelin.draggablelayout.DraggableLayout>
-
 
 
 </android.support.constraint.ConstraintLayout>

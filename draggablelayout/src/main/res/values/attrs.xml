@@ -22,13 +22,25 @@
 
     <declare-styleable name="DraggableLayout">
 
-        <!--当抽屉全部被打开后剩余的空间大小-->
+        <!--当抽屉全部被打开后剩余的空间大小，该参数的值是一个字符串，但是他必须是一个有格式的字符串。
+        格式为整数加单位，单位有：
+            1. dp 表示显露出来的大小为Xdp，例如 20dp；
+            2. % 表示显露出来的大小为自身的百分比，例如 20%；
+            3. %p 表示显露出来的大小为父组件(也就是DragLayout)的百分比，例如 20%p；-->
         <attr name="minRemainingSpace" format="string"/>
 
-        <!--有中间状态时的剩余控件大小-->
+        <!--有中间状态时的剩余控件大小，该参数的值是一个字符串，但是他必须是一个有格式的字符串。
+        格式为整数加单位，单位有：
+            1. dp 表示显露出来的大小为Xdp，例如 20dp；
+            2. % 表示显露出来的大小为自身的百分比，例如 20%；
+            3. %p 表示显露出来的大小为父组件(也就是DragLayout)的百分比，例如 20%p；-->
         <attr name="middleRemainingSpace" format="string"/>
 
-        <!--把手大小-->
+        <!--把手大小，即当状态为closed时可被拖拽的子view的可见部分的大小，该参数的值是一个字符串，但是他必须是一个有格式的字符串。
+        格式为整数加单位，单位有：
+            1. dp 表示显露出来的大小为Xdp，例如 20dp；
+            2. % 表示显露出来的大小为自身的百分比，例如 20%；
+            3. %p 表示显露出来的大小为父组件(也就是DragLayout)的百分比，例如 20%p；-->
         <attr name="handleSize" format="string"/>
 
         <!--初始化状态-->
@@ -38,8 +50,11 @@
             <flag name="close" value="0x0003"/>
         </attr>
 
+        <!--是否拥有中间状态，即抽屉是否可以被拉开到一半的位置(当然这个中间的位置是可以指定的)。-->
         <attr name="hasMiddleStatus" format="boolean"/>
 
+        <!--通常情况下该参数不需要设置，但是如果你的抽屉里面不止一个可以响应手势控件的时候(例如有一个横向的listView和一个竖向的listView)
+        就需要使用一个ViewGroup将这两个listView包裹起来，然后将这个ViewGroup的ID通过该参数设置，这样才能保证两个listView都能响应手势控制。-->
         <attr name="contentViewId" format="reference"/>
     </declare-styleable>
 </resources>

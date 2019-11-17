@@ -684,7 +684,7 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
                     }
                     else -> throw RuntimeException(String.format("the %s value:%s is unknown!", argName, value))
                 }
-                result = Math.abs(Integer.parseInt(number)) and VALUE_QUALIFIED or mode
+                result = Math.abs(number.toInt()) and VALUE_QUALIFIED or mode
             } else {
                 result = DRAG_HANDLE_BEGIN_OR_END_NOT_SET
             }
