@@ -20,24 +20,26 @@
         <attr name="dragHandleEnd" format="string" />
     </declare-styleable>
 
-    <declare-styleable name="ScrollLayout">
+    <declare-styleable name="DraggableLayout">
 
-        <attr name="minOffset" format="string" />
+        <!--当抽屉全部被打开后剩余的空间大小-->
+        <attr name="minRemainingSpace" format="string"/>
 
-        <attr name="maxOffset" format="string" />
+        <!--有中间状态时的剩余控件大小-->
+        <attr name="middleRemainingSpace" format="string"/>
 
         <!--把手大小-->
-        <attr name="handleSize" format="string" />
+        <attr name="handleSize" format="string"/>
 
-        <attr name="mode">
-            <flag name="open" value="0x1" />
-            <flag name="close" value="0x2" />
-            <flag name="exit" value="0x3" />
+        <!--初始化状态-->
+        <attr name="initStatus">
+            <flag name="middle" value="0x0001"/>
+            <flag name="open" value="0x0002"/>
+            <flag name="close" value="0x0003"/>
         </attr>
 
-        <attr name="allowHorizontalScroll" format="boolean"/>
+        <attr name="hasMiddleStatus" format="boolean"/>
 
-        <attr name="isSupportExit" format="boolean"/>
-
+        <attr name="contentViewId" format="reference"/>
     </declare-styleable>
 </resources>

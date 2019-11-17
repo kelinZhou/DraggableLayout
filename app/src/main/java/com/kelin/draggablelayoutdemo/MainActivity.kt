@@ -1,4 +1,4 @@
-package com.kelin.draglayoutdemo
+package com.kelin.draggablelayoutdemo
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle

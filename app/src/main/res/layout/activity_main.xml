@@ -9,41 +9,40 @@
         android:id="@+id/rvList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="51dp" />
+        android:layout_marginBottom="53dp" />
 
-
-    <!--<TextView-->
-        <!--android:id="@+id/tvRoot"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="match_parent"-->
-        <!--android:text="这是根页面"-->
-        <!--android:gravity="center"-->
-        <!--android:textSize="20sp"/>-->
-
-    <com.kelin.draglayout.ScrollLayout
+    <com.kelin.draggablelayout.DraggableLayout
         android:id="@+id/dlRoot"
-        app:handleSize="50dp"
-        app:minOffset="0dp"
-        app:maxOffset="50%"
-        app:mode="exit"
+        app:handleSize="53dp"
+        app:minRemainingSpace="40%"
+        app:middleRemainingSpace="50%"
+        app:initStatus="close"
+        app:hasMiddleStatus="false"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        app:contentViewId="@id/rvList2">
         <LinearLayout
             android:id="@+id/llDragView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginEnd="12dp"
-            android:layout_marginStart="12dp"
             android:background="@drawable/shape_grey_10r_lt_rt"
             app:layout_constraintHeight_default="percent"
             app:layout_constraintHeight_percent="0.5"
             android:orientation="vertical">
 
             <TextView
+                android:layout_width="40dp"
+                android:layout_height="3dp"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/shape_white_10r"
+                android:layout_marginTop="10dp"/>
+
+            <TextView
                 android:id="@+id/tvTitle"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
+                android:layout_height="40dp"
                 android:gravity="center"
+                android:textSize="13sp"
                 android:text="@string/test_content_text"
                 android:textColor="@android:color/white" />
 
@@ -52,7 +51,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"/>
         </LinearLayout>
-    </com.kelin.draglayout.ScrollLayout>
+    </com.kelin.draggablelayout.DraggableLayout>
 
 
 
