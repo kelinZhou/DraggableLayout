@@ -7,19 +7,18 @@
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rvList"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="53dp" />
+        android:layout_height="match_parent" />
 
     <com.kelin.draggablelayout.DraggableLayout
         android:id="@+id/dlRoot"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:contentViewId="@id/rvList2"
-        app:handleSize="53dp"
+        app:handleSize="0dp"
         app:hasMiddleStatus="false"
-        app:initStatus="close"
+        app:initStatus="open"
         app:middleRemainingSpace="60%"
-        app:minRemainingSpace="30%">
+        app:minRemainingSpace="10%">
 
         <LinearLayout
             android:id="@+id/llDragView"

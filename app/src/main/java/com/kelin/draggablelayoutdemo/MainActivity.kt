@@ -6,6 +6,8 @@ import android.support.annotation.LayoutRes
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
 import android.view.ViewGroup
 import android.widget.TextView
 import kotlinx.android.synthetic.main.activity_main.*
@@ -21,6 +23,20 @@ class MainActivity : AppCompatActivity() {
         rvList2.adapter = TestAdapter(getDataList("我是拖拽列表的条目"))
         rvList2.requestDisallowInterceptTouchEvent(true)
 //        tvRoot.setOnClickListener { dlRoot.scrollToOpen() }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_operation, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        return if (item?.itemId == R.id.menu_operation) {
+            dlRoot.smoothOpen()
+            true
+        } else {
+            super.onOptionsItemSelected(item)
+        }
     }
 
     override fun onStart() {
