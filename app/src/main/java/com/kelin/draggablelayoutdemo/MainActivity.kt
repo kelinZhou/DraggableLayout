@@ -23,6 +23,7 @@ class MainActivity : AppCompatActivity() {
         rvList2.adapter = TestAdapter(getDataList("我是拖拽列表的条目"))
         rvList2.requestDisallowInterceptTouchEvent(true)
 //        tvRoot.setOnClickListener { dlRoot.scrollToOpen() }
+        //TODO 修复把手丢失的问题。
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
