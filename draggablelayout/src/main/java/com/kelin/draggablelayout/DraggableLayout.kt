@@ -25,20 +25,22 @@ import android.annotation.TargetApi
 import android.content.Context
 import android.content.res.Resources
 import android.os.Build
-import android.support.annotation.IntDef
-import android.support.v7.widget.GridLayoutManager
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.StaggeredGridLayoutManager
+import androidx.annotation.IntDef
 import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.OvershootInterpolator
 import android.widget.AbsListView
 import android.widget.FrameLayout
 import android.widget.ScrollView
 import android.widget.Scroller
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import kotlin.math.abs
 
 
 /**
@@ -46,7 +48,7 @@ import android.widget.Scroller
  *
  * **创建人:** kelin
  *
- * **创建时间:** 2018/10/27  下午4:01
+ * **创建时间:** 2021-09-01 15:22:12
  *
  * **版本:** v 1.0.0
  */
@@ -62,9 +64,23 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
     private var hasMiddleStatus = false
     private var currentInnerStatus = InnerStatus.MIDDLE
     private var contentView: View? = null
-    private var onScrollChangedListener: OnScrollChangedListener? = null
+    private var doOnScrollProgressChangedListener: ((progress: Float, scrollY: Int) -> Unit)? = null
+    private var doOnScrollFinishedListener: ((status: Int) -> Unit)? = null
+    private var onScrollChangedListener: OnScrollChangedListener = object : OnScrollChangedListener {
+        override fun onScrollProgressChanged(currentProgress: Float, scrollY: Int) {
+            doOnScrollProgressChangedListener?.invoke(currentProgress, scrollY)
+        }
+
+        override fun onScrollFinished(currentStatus: Int) {
+            doOnScrollFinishedListener?.invoke(currentStatus)
+        }
+
+        override fun onChildScroll(top: Int) {
+        }
+    }
 
     private var lastY = 0F
+    private var lastScrolledY = 0
     private var lastDownX = 0F
     private var lastDownY = 0F
 
@@ -72,19 +88,22 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
 
     init {
         if (attrs != null) {
-            val a = context.obtainStyledAttributes(attrs, R.styleable.DraggableLayout)
-            if (a != null) {
+            context.obtainStyledAttributes(attrs, R.styleable.DraggableLayout).run {
                 spaceInfo = SpaceInfo(
-                        a.getString(R.styleable.DraggableLayout_minRemainingSpace) ?: "",
-                        a.getString(R.styleable.DraggableLayout_middleRemainingSpace) ?: "",
-                        a.getString(R.styleable.DraggableLayout_handleSize) ?: ""
+                        getString(R.styleable.DraggableLayout_minRemainingSpace) ?: "0%",
+                        getString(R.styleable.DraggableLayout_middleRemainingSpace) ?: "50%",
+                        getString(R.styleable.DraggableLayout_handleSize) ?: "100%"
                 )
-                initialStatus = a.getInteger(R.styleable.DraggableLayout_initStatus, initialStatus)
-                contentViewId = a.getResourceId(R.styleable.DraggableLayout_contentViewId, contentViewId)
-                hasMiddleStatus = a.getBoolean(R.styleable.DraggableLayout_hasMiddleStatus, hasMiddleStatus)
-                a.recycle()
-            } else {
-                spaceInfo = SpaceInfo("", "", "")
+                initialStatus = getInteger(R.styleable.DraggableLayout_initStatus, initialStatus)
+                currentInnerStatus = when (initialStatus) {
+                    STATUS_MIDDLE -> InnerStatus.MIDDLE
+                    STATUS_OPENED -> InnerStatus.OPENED
+                    STATUS_CLOSED -> InnerStatus.CLOSED
+                    else -> currentInnerStatus
+                }
+                contentViewId = getResourceId(R.styleable.DraggableLayout_contentViewId, contentViewId)
+                hasMiddleStatus = getBoolean(R.styleable.DraggableLayout_hasMiddleStatus, hasMiddleStatus)
+                recycle()
             }
         } else {
             spaceInfo = SpaceInfo("", "", "")
@@ -94,7 +113,7 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
     @Suppress("ObsoleteSdkInt")
     private val scroller by lazy {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            Scroller(getContext(), null, true)
+            Scroller(getContext(), OvershootInterpolator(), true)
         } else {
             Scroller(getContext())
         }
@@ -126,7 +145,8 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
         }
     }
 
-    @get:Status val currentStatus: Int
+    @get:Status
+    val currentStatus: Int
         get() = when (currentInnerStatus) {
             InnerStatus.OPENED -> STATUS_OPENED
             InnerStatus.CLOSED -> STATUS_CLOSED
@@ -160,6 +180,14 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
         })
     }
 
+    fun doOnScrollProgressChanged(l: (progress: Float, scrollY: Int) -> Unit) {
+        doOnScrollProgressChangedListener = l
+    }
+
+    fun doOnScrollFinished(l: (status: Int) -> Unit) {
+        doOnScrollFinishedListener = l
+    }
+
     override fun onFinishInflate() {
         super.onFinishInflate()
         val cv = findViewById<View>(contentViewId)
@@ -171,19 +199,22 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         spaceInfo.measure(resources, h)
-        getChildAt(0).layoutParams.height = h - spaceInfo.minSpace
+        spaceInfo.minSpace = h - getChildAt(0).measuredHeight
+        postDelayed({
+            if (initialStatus != STATUS_NONE) {
+                when (initialStatus) {
+                    STATUS_OPENED -> smoothOpen()
+                    STATUS_MIDDLE -> middle()
+                    STATUS_CLOSED -> close()
+                }
+                initialStatus = STATUS_NONE
+            }
+        }, 300)
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        if (initialStatus != STATUS_NONE) {
-            when (initialStatus) {
-                STATUS_OPENED -> open()
-                STATUS_MIDDLE -> middle()
-                STATUS_CLOSED -> close()
-            }
-            initialStatus = STATUS_NONE
-        }
+        close()
         findContentView(this)
     }
 
@@ -192,24 +223,31 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
         if (spaceInfo.maxSpace == spaceInfo.minSpace) {
             return
         }
+        val sY = if (lastScrolledY != 0) {
+            abs(y) - lastScrolledY
+        } else {
+            0
+        }
+        lastScrolledY = abs(y)
         if (-y <= spaceInfo.maxSpace) {
             val progress = (-y - spaceInfo.minSpace).toFloat() / (spaceInfo.maxSpace - spaceInfo.minSpace)
-            onScrollProgressChanged(progress)
+            onScrollProgressChanged(progress, sY)
         } else {
             val progress = (-y - spaceInfo.maxSpace).toFloat() / (spaceInfo.maxSpace - spaceInfo.maxSpace)
-            onScrollProgressChanged(progress)
+            onScrollProgressChanged(progress, sY)
         }
-        if (y == -spaceInfo.minSpace) {
+
+        if (-y == spaceInfo.minSpace) {
             if (currentInnerStatus != InnerStatus.OPENED) {
                 currentInnerStatus = InnerStatus.OPENED
                 onScrollFinished(STATUS_OPENED)
             }
-        } else if (y == -spaceInfo.maxSpace) {
+        } else if (-y == spaceInfo.middleSpace) {
             if (currentInnerStatus != InnerStatus.MIDDLE) {
                 currentInnerStatus = InnerStatus.MIDDLE
                 onScrollFinished(STATUS_MIDDLE)
             }
-        } else if (y == -spaceInfo.maxSpace) {
+        } else if (-y == spaceInfo.maxSpace) {
             if (currentInnerStatus != InnerStatus.CLOSED) {
                 currentInnerStatus = InnerStatus.CLOSED
                 onScrollFinished(STATUS_CLOSED)
@@ -340,29 +378,38 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
     }
 
     private fun completeMove() {
-        val middleValue = -((spaceInfo.maxSpace - spaceInfo.minSpace) * THRESHOLD_SCROLL_TO_MIDDLE)
-        if (scrollY > middleValue) {
-            smoothOpen()
-        } else {
-            val closeValue = -((spaceInfo.maxSpace - spaceInfo.maxSpace) * THRESHOLD_SCROLL_TO_CLOSE + spaceInfo.maxSpace)
-            if (scrollY <= middleValue && scrollY > closeValue) {
-                if (hasMiddleStatus) {
-                    smoothMiddle()
+        val absScrollY = abs(scrollY)
+        if (!absScrollY.isIn(spaceInfo.minSpace, spaceInfo.middleSpace, spaceInfo.maxSpace)) {
+            val middleValue = -((spaceInfo.maxSpace - spaceInfo.minSpace) * THRESHOLD_SCROLL_TO_MIDDLE + spaceInfo.minSpace)
+            if (scrollY > middleValue) {
+                smoothOpen()
+            } else {
+                val closeValue = -((spaceInfo.maxSpace - spaceInfo.maxSpace) * THRESHOLD_SCROLL_TO_CLOSE + spaceInfo.maxSpace)
+                if (scrollY <= middleValue && scrollY > closeValue) {
+                    if (hasMiddleStatus) {
+                        smoothMiddle()
+                    } else {
+                        smoothClose()
+                    }
                 } else {
                     smoothClose()
                 }
-            } else {
-                smoothClose()
+            }
+        } else if (currentInnerStatus == InnerStatus.MOVING || currentInnerStatus == InnerStatus.SCROLLING) {
+            currentInnerStatus = when (absScrollY) {
+                spaceInfo.minSpace -> InnerStatus.OPENED
+                spaceInfo.middleSpace -> InnerStatus.MIDDLE
+                else -> InnerStatus.CLOSED
             }
         }
     }
 
     private fun onScrollFinished(@Status status: Int) {
-        onScrollChangedListener?.onScrollFinished(status)
+        onScrollChangedListener.onScrollFinished(status)
     }
 
-    private fun onScrollProgressChanged(progress: Float) {
-        onScrollChangedListener?.onScrollProgressChanged(progress)
+    private fun onScrollProgressChanged(progress: Float, scrollY: Int) {
+        onScrollChangedListener.onScrollProgressChanged(progress, scrollY)
     }
 
     private fun findContentView(parent: ViewGroup) {
@@ -405,7 +452,7 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
         }
         scrollView.isScrollbarFadingEnabled = false
         scrollView.setOnScrollChangeListener { sv, _, oldT ->
-            onScrollChangedListener?.onChildScroll(oldT)
+            onScrollChangedListener.onChildScroll(oldT)
             if (sv.scrollY == 0) {
                 setDraggable(true)
             } else {
@@ -421,7 +468,7 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
         }
         view.isScrollbarFadingEnabled = false
         view.setOnScrollChangeListener { sv, _, _, _, oldT ->
-            onScrollChangedListener?.onChildScroll(oldT)
+            onScrollChangedListener.onChildScroll(oldT)
             if (sv.scrollY == 0) {
                 setDraggable(true)
             } else {
@@ -501,7 +548,6 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
             return
         }
         currentInnerStatus = InnerStatus.SCROLLING
-        initialStatus = STATUS_MIDDLE
         val duration = MIN_SCROLL_DURATION + Math.abs((MAX_SCROLL_DURATION - MIN_SCROLL_DURATION) * dy / (spaceInfo.maxSpace - spaceInfo.minSpace))
         scroller.startScroll(0, scrollY, 0, dy, duration)
         invalidate()
@@ -511,10 +557,14 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
      * 滚动的布局来关闭,滚动到offsetInfo.minSpace.
      */
     fun smoothOpen() {
+        realSmoothOpen()
+    }
+
+    private fun realSmoothOpen() {
         if (currentInnerStatus == InnerStatus.OPENED) {
             return
         }
-        if (spaceInfo.maxSpace == spaceInfo.minSpace) {
+        if (currentInnerStatus == InnerStatus.MIDDLE && spaceInfo.maxSpace == spaceInfo.minSpace) {
             return
         }
         val dy = -scrollY - spaceInfo.minSpace
@@ -522,8 +572,7 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
             return
         }
         currentInnerStatus = InnerStatus.SCROLLING
-        initialStatus = STATUS_OPENED
-        val duration = MIN_SCROLL_DURATION + Math.abs((MAX_SCROLL_DURATION - MIN_SCROLL_DURATION) * dy / (spaceInfo.maxSpace - spaceInfo.minSpace))
+        val duration = MIN_SCROLL_DURATION + abs((MAX_SCROLL_DURATION - MIN_SCROLL_DURATION) * dy / (spaceInfo.maxSpace - spaceInfo.minSpace))
         scroller.startScroll(0, scrollY, 0, dy, duration)
         invalidate()
     }
@@ -535,7 +584,6 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
         val dy = -scrollY - spaceInfo.maxSpace
         if (currentInnerStatus != InnerStatus.CLOSED && spaceInfo.middleSpace != spaceInfo.maxSpace && dy != 0) {
             currentInnerStatus = InnerStatus.SCROLLING
-            initialStatus = STATUS_CLOSED
             val duration = MIN_SCROLL_DURATION + Math.abs((MAX_SCROLL_DURATION - MIN_SCROLL_DURATION) * dy / (spaceInfo.maxSpace - spaceInfo.minSpace))
             scroller.startScroll(0, scrollY, 0, dy, duration)
             invalidate()
@@ -548,7 +596,6 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
     fun middle() {
         scrollTo(0, -spaceInfo.middleSpace)
         currentInnerStatus = InnerStatus.MIDDLE
-        initialStatus = STATUS_MIDDLE
     }
 
     /**
@@ -557,7 +604,6 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
     fun open() {
         scrollTo(0, -spaceInfo.minSpace)
         currentInnerStatus = InnerStatus.OPENED
-        initialStatus = STATUS_OPENED
     }
 
     /**
@@ -566,7 +612,6 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
     fun close() {
         scrollTo(0, -spaceInfo.maxSpace)
         currentInnerStatus = InnerStatus.CLOSED
-        initialStatus = STATUS_CLOSED
     }
 
     companion object {
@@ -574,14 +619,17 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
          * 表示当前拖拽把手的布局方式为dp。
          */
         private const val MODE_DP = 0x1000_0000
+
         /**
          * 表示当前拖拽把手的布局方式为自身百分比。
          */
         private const val MODE_PERCENT = 0x2000_0000
+
         /**
          * 表示没有设置拖拽把手的布局方式及大小。
          */
         private const val DRAG_HANDLE_BEGIN_OR_END_NOT_SET = 0x0000_0000
+
         /**
          * dragHandleSize的value值所支持的单位。
          */
@@ -590,15 +638,18 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
         /**
          * 把手参数的数值限定。
          */
-        private const val VALUE_QUALIFIED = 0x0FFF_FFFF;
+        private const val VALUE_QUALIFIED = 0x0FFF_FFFF
+
         /**
          * 把手参数的模式限定。
          */
-        private const val MODE_QUALIFIED = 0x7000_0000;
+        private const val MODE_QUALIFIED = 0x7000_0000
+
         /**
          * 最大滚动时长。
          */
         private const val MAX_SCROLL_DURATION = 400
+
         /**
          * 最小滚动时长。
          */
@@ -612,14 +663,17 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
          * 表示当前的状态为没有任何状态。可能是因为View刚刚被创建的原因，所以没有任何状态。
          */
         private const val STATUS_NONE = 0x0000
+
         /**
          * 表示当前状态为中间状态，也就是抽屉刚刚打开一半的时候。
          */
         const val STATUS_MIDDLE = 0x0001
+
         /**
          * 表示当前状态为打开状态，也就是抽屉完全被打开了。
          */
         const val STATUS_OPENED = 0x0002
+
         /**
          * 表示当前状态为关闭状态，也就是说抽屉完全被关闭了。除了把手外，其他的内容是不可见的。
          */
@@ -639,7 +693,7 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
          *
          * @param currentProgress from -1 to 1, 0 means middle, 1 means open, -1 means close.
          */
-        fun onScrollProgressChanged(currentProgress: Float)
+        fun onScrollProgressChanged(currentProgress: Float, scrollY: Int)
 
         /**
          * This is called when the scrolling state changes.
@@ -657,11 +711,11 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
     }
 
     private inner class SpaceInfo(private val minRemainingSpace: String, private val middleRemainingSpace: String, private val maxRemainingSpace: String) {
-        internal var minSpace: Int = 0
-        internal var middleSpace: Int = 0
-        internal var maxSpace: Int = 0
+        var minSpace: Int = 0
+        var middleSpace: Int = 0
+        var maxSpace: Int = 0
 
-        internal fun measure(res: Resources, height: Int) {
+        fun measure(res: Resources, height: Int) {
             minSpace = parserValueFromMode(res, parserOffset(minRemainingSpace, "minRemainingSpace"), height)
             middleSpace = height - parserValueFromMode(res, parserOffset(middleRemainingSpace, "middleRemainingSpace"), height)
             maxSpace = height - parserValueFromMode(res, parserOffset(maxRemainingSpace, "maxRemainingSpace"), height)
@@ -703,4 +757,8 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
             return result
         }
     }
+}
+
+fun Int.isIn(vararg numbers: Int): Boolean {
+    return numbers.contains(this)
 }

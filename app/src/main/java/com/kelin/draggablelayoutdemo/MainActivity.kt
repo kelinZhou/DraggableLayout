@@ -1,15 +1,15 @@
 package com.kelin.draggablelayoutdemo
 
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.support.annotation.LayoutRes
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
+import androidx.annotation.LayoutRes
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -37,13 +37,6 @@ class MainActivity : AppCompatActivity() {
         } else {
             super.onOptionsItemSelected(item)
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
-//        dlRoot.setIsSupportExit(true)
-//        dlRoot.setAllowHorizontalScroll(true)
-//        dlRoot.setOnScrollChangedListener(mOnScrollChangedListener)
     }
 
     private fun getDataList(title: String): List<String> {
