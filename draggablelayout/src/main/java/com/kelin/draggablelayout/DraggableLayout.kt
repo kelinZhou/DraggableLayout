@@ -31,7 +31,7 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.OvershootInterpolator
+import android.view.animation.*
 import android.widget.AbsListView
 import android.widget.FrameLayout
 import android.widget.ScrollView
@@ -86,6 +86,8 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
 
     private var isDraggable = true
 
+    private val scrollerInterpolator: Interpolator
+
     init {
         if (attrs != null) {
             context.obtainStyledAttributes(attrs, R.styleable.DraggableLayout).run {
@@ -103,17 +105,25 @@ class DraggableLayout @JvmOverloads constructor(context: Context, attrs: Attribu
                 }
                 contentViewId = getResourceId(R.styleable.DraggableLayout_contentViewId, contentViewId)
                 hasMiddleStatus = getBoolean(R.styleable.DraggableLayout_hasMiddleStatus, hasMiddleStatus)
+                scrollerInterpolator = getResourceId(R.styleable.DraggableLayout_android_interpolator, NO_ID).let {
+                    if (it != NO_ID) {
+                        AnimationUtils.loadInterpolator(getContext(), it)
+                    } else {
+                        DecelerateInterpolator()
+                    }
+                }
                 recycle()
             }
         } else {
             spaceInfo = SpaceInfo("", "", "")
+            scrollerInterpolator = DecelerateInterpolator()
         }
     }
 
     @Suppress("ObsoleteSdkInt")
     private val scroller by lazy {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            Scroller(getContext(), OvershootInterpolator(), true)
+            Scroller(getContext(), scrollerInterpolator, true)
         } else {
             Scroller(getContext())
         }
